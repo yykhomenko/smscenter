@@ -181,13 +181,20 @@ func DefaultHandler(c smpp.Conn, m pdu.Body) {
 		r.Header().Seq = m.Header().Seq
 		r.Fields().Set(pdufield.MessageID, "40fe50ab")
 
-		fmt.Println("REQ=================================")
-		fmt.Println(m.Fields()[pdufield.SystemID])
+		fmt.Println("REQ==================================")
 		fmt.Println(m.Fields()[pdufield.SourceAddr])
 		fmt.Println(m.Fields()[pdufield.DestinationAddr])
 		fmt.Println(m.Fields()[pdufield.ShortMessage])
+		fmt.Println("===")
+		fmt.Println(m.Header())
+		fmt.Println(m.Fields())
+		fmt.Println(m.TLVFields())
+
 		fmt.Println("RESP=================================")
-		fmt.Println(r)
+		fmt.Println(r.Header())
+		fmt.Println(r.Fields())
+		fmt.Println(r.TLVFields())
+		fmt.Println("====================================")
 
 		c.Write(r)
 	default:

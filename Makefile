@@ -1,13 +1,10 @@
-.PHONY: setup
-setup: ## Install all the build and lint dependencies
-
 .PHONY: build
 build: ## Build a version
-	go build -v ./...
+	go build -v ./cmd/smscenter
 
-.PHONY: clean
-clean: ## Remove temporary files
-	go clean
+.PHONY: test
+test: ## Run all the tests
+	go test -v -race -timeout 30s ./...
 
 .PHONY: help
 help:
