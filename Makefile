@@ -8,6 +8,8 @@ test: ## Run all the tests
 
 .PHONY: install
 install: ## Install a version
+	make build
+	make test
 	go install -v ./cmd/smscenter
 
 .PHONY: help
