@@ -16,23 +16,27 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	s := NewServer()
+	s := NewServer("localhost:0")
 	defer s.Close()
+
 	c, err := net.Dial("tcp", s.Addr())
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer c.Close()
+
 	rw := newConn(c)
+
 	// bind
 	p := pdu.NewBindTransmitter()
 	f := p.Fields()
-	f.Set(pdufield.SystemID, "client")
-	f.Set(pdufield.Password, "secret")
+	f.Set(pdufield.SystemID, "user")
+	f.Set(pdufield.Password, "password")
 	f.Set(pdufield.InterfaceVersion, 0x34)
 	if err = rw.Write(p); err != nil {
 		t.Fatal(err)
 	}
+
 	// bind resp
 	resp, err := rw.Read()
 	if err != nil {
@@ -45,11 +49,12 @@ func TestServer(t *testing.T) {
 	if id.String() != "smpptest" {
 		t.Fatalf("unexpected system_id: want smpptest, have %q", id)
 	}
+
 	// submit_sm
 	p = pdu.NewSubmitSM(nil)
 	f = p.Fields()
-	f.Set(pdufield.SourceAddr, "foobar")
-	f.Set(pdufield.DestinationAddr, "bozo")
+	f.Set(pdufield.SourceAddr, "777")
+	f.Set(pdufield.DestinationAddr, "380671112222")
 	f.Set(pdufield.ShortMessage, pdutext.Latin1("Lorem ipsum"))
 	if err = rw.Write(p); err != nil {
 		t.Fatal(err)
@@ -74,6 +79,7 @@ func TestServer(t *testing.T) {
 				v, vv)
 		}
 	}
+
 	// submit_sm + tlv field
 	p = pdu.NewSubmitSM(pdutlv.Fields{pdutlv.TagReceiptedMessageID: pdutlv.CString("xyz123")})
 	f = p.Fields()
