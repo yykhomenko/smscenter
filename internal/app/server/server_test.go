@@ -59,26 +59,17 @@ func TestServer(t *testing.T) {
 	if err = rw.Write(p); err != nil {
 		t.Fatal(err)
 	}
-	// same submit_sm
+
+	// submit_sm_resp
+	resp = pdu.NewSubmitSMResp()
+	resp.Header().Seq = p.Header().Seq
+	resp.Header().Len = 0x19
+
 	r, err := rw.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, have := *p.Header(), *r.Header()
-	if want != have {
-		t.Fatalf("unexpected header: want %#v, have %#v", want, have)
-	}
-	for k, v := range p.Fields() {
-		vv, exists := r.Fields()[k]
-		if !exists {
-			t.Fatalf("unexpected fields: want %#v, have %#v",
-				p.Fields(), r.Fields())
-		}
-		if !bytes.Equal(v.Bytes(), vv.Bytes()) {
-			t.Fatalf("unexpected field data: want %#v, have %#v",
-				v, vv)
-		}
-	}
+	match(t, resp, r)
 
 	// submit_sm + tlv field
 	p = pdu.NewSubmitSM(pdutlv.Fields{pdutlv.TagReceiptedMessageID: pdutlv.CString("xyz123")})
@@ -94,20 +85,29 @@ func TestServer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, have = *p.Header(), *r.Header()
 
+	resp = pdu.NewSubmitSMResp()
+	resp.Header().Seq = p.Header().Seq
+	resp.Header().Len = 0x19
+
+	match(t, resp, r)
+}
+
+func match(t *testing.T, resp pdu.Body, r pdu.Body) (pdu.Header, pdu.Header) {
+	want, have := *resp.Header(), *r.Header()
 	if want != have {
 		t.Fatalf("unexpected header: want %#v, have %#v", want, have)
 	}
-	for k, v := range p.Fields() {
+	for k, v := range resp.Fields() {
 		vv, exists := r.Fields()[k]
 		if !exists {
 			t.Fatalf("unexpected fields: want %#v, have %#v",
-				p.Fields(), r.Fields())
+				resp.Fields(), r.Fields())
 		}
 		if !bytes.Equal(v.Bytes(), vv.Bytes()) {
 			t.Fatalf("unexpected field data: want %#v, have %#v",
 				v, vv)
 		}
 	}
+	return want, have
 }

@@ -57,7 +57,7 @@ func NewUnstartedServer(addr string) *Server {
 	return &Server{
 		User:    DefaultUser,
 		Passwd:  DefaultPasswd,
-		Handler: EchoHandler,
+		Handler: DefaultHandler,
 		l:       newLocalListener(addr),
 	}
 }
@@ -142,7 +142,9 @@ func (srv *Server) auth(c *conn) error {
 	if err != nil {
 		return err
 	}
+
 	var resp pdu.Body
+
 	switch p.Header().ID {
 	case pdu.BindTransmitterID:
 		resp = pdu.NewBindTransmitterResp()
@@ -153,9 +155,11 @@ func (srv *Server) auth(c *conn) error {
 	default:
 		return errors.New("unexpected pdu, want bind")
 	}
+
 	f := p.Fields()
 	user := f[pdufield.SystemID]
 	passwd := f[pdufield.Password]
+
 	if user == nil || passwd == nil {
 		return errors.New("malformed pdu, missing system_id/password")
 	}
@@ -165,23 +169,32 @@ func (srv *Server) auth(c *conn) error {
 	if passwd.String() != srv.Passwd {
 		return errors.New("invalid passwd")
 	}
+
 	resp.Fields().Set(pdufield.SystemID, DefaultSystemID)
 
 	return c.Write(resp)
 }
 
-// EchoHandler is the default Server HandlerFunc, and echoes back
-// any PDUs received.
-func EchoHandler(cli smpp.Conn, m pdu.Body) {
+// DefaultHandler is the default Server HandlerFunc, and echoes back
+// any unexpected PDUs received.
+func DefaultHandler(c smpp.Conn, m pdu.Body) {
 
-	fmt.Println(m.Fields()[pdufield.SystemID])
-	fmt.Println(m.Fields()[pdufield.SourceAddr])
-	fmt.Println(m.Fields()[pdufield.DestinationAddr])
-	fmt.Println(m.Fields()[pdufield.ShortMessage])
-	fmt.Println("=================================")
+	switch m.Header().ID {
+	case pdu.SubmitSMID:
+		r := pdu.NewSubmitSMResp()
+		r.Header().Seq = m.Header().Seq
+		r.Fields().Set(pdufield.MessageID, "40fe50ab")
 
-	resp := pdu.NewSubmitSMResp()
-	resp.Header().Seq = m.Header().Seq
-	resp.Fields().Set(pdufield.MessageID, "1234")
-	cli.Write(resp)
+		fmt.Println("REQ=================================")
+		fmt.Println(m.Fields()[pdufield.SystemID])
+		fmt.Println(m.Fields()[pdufield.SourceAddr])
+		fmt.Println(m.Fields()[pdufield.DestinationAddr])
+		fmt.Println(m.Fields()[pdufield.ShortMessage])
+		fmt.Println("RESP=================================")
+		fmt.Println(r)
+
+		c.Write(r)
+	default:
+		c.Write(m)
+	}
 }
