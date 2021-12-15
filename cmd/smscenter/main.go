@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	s := server.NewServer("192.168.0.2:3736")
+	s := server.NewServer("localhost:3736")
 	defer s.Close()
 
 	log.Println("smscenter listen to:", s.Addr())
