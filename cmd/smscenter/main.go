@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cbi-sh/smscenter/internal/app/server"
+	"github.com/yykhomenko/smscenter/internal/server"
 )
 
 func main() {
