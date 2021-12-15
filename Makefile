@@ -9,7 +9,7 @@ install: ## Install a version
 	make test
 	go install -v ./cmd/smscenter
 
-run:
+run: ## Run a version
 	go run ./cmd/smscenter
 
 help:
