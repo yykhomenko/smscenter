@@ -16,9 +16,7 @@ func TestServer(t *testing.T) {
 	defer s.Close()
 
 	c, err := net.Dial("tcp", s.Addr())
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	defer c.Close()
 
 	rw := newConn(c)
@@ -29,15 +27,12 @@ func TestServer(t *testing.T) {
 	f.Set(pdufield.SystemID, "user")
 	f.Set(pdufield.Password, "password")
 	f.Set(pdufield.InterfaceVersion, 0x34)
-	if err = rw.Write(p); err != nil {
-		t.Fatal(err)
-	}
+	err = rw.Write(p)
+	check(t, err)
 
 	// bind resp
 	resp, err := rw.Read()
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	id, ok := resp.Fields()[pdufield.SystemID]
 	if !ok {
 		t.Fatalf("missing system_id field: %#v", resp)
@@ -52,9 +47,8 @@ func TestServer(t *testing.T) {
 	f.Set(pdufield.SourceAddr, "777")
 	f.Set(pdufield.DestinationAddr, "380671112222")
 	f.Set(pdufield.ShortMessage, pdutext.Latin1("Lorem ipsum"))
-	if err = rw.Write(p); err != nil {
-		t.Fatal(err)
-	}
+	err = rw.Write(p)
+	check(t, err)
 
 	// submit_sm_resp
 	resp = pdu.NewSubmitSMResp()
@@ -62,9 +56,7 @@ func TestServer(t *testing.T) {
 	resp.Header().Len = 0x19
 
 	r, err := rw.Read()
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	match(t, resp, r)
 
 	// submit_sm + tlv field
@@ -73,20 +65,24 @@ func TestServer(t *testing.T) {
 	f.Set(pdufield.SourceAddr, "foobar")
 	f.Set(pdufield.DestinationAddr, "bozo")
 	f.Set(pdufield.ShortMessage, pdutext.Latin1("Lorem ipsum"))
-	if err = rw.Write(p); err != nil {
-		t.Fatal(err)
-	}
+	err = rw.Write(p)
+	check(t, err)
+
 	// same submit_sm
 	r, err = rw.Read()
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 
 	resp = pdu.NewSubmitSMResp()
 	resp.Header().Seq = p.Header().Seq
 	resp.Header().Len = 0x19
 
 	match(t, resp, r)
+}
+
+func check(t *testing.T, err error) {
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func match(t *testing.T, resp pdu.Body, r pdu.Body) (pdu.Header, pdu.Header) {
