@@ -1,16 +1,18 @@
-build: ## Build a version
+build: ## Build version
 	go build -v ./cmd/smscenter
+	go build -v ./cmd/smsclient
 
-test: ## Run all the tests
+test: ## Run all tests
 	go test -v -race -timeout 30s ./...
 
-run: ## Run a version
+run: ## Run version
 	go run ./cmd/smscenter
 
-install: ## Install a version
+install: ## Install version
 	make build
 	make test
 	go install -v ./cmd/smscenter
+	go install -v ./cmd/smsclient
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
