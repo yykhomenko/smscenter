@@ -14,7 +14,7 @@ install: ## Install version
 	go install -v ./cmd/smscenter
 	go install -v ./cmd/smsclient
 
-clean:
+clean: ## Clean version
 	rm -f smscenter smsclient
 
 help:
