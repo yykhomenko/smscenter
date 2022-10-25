@@ -1,9 +1,9 @@
 build: ## Build version
-	go build -v ./cmd/smscenter
-	go build -v ./cmd/smsclient
+	go build ./cmd/smscenter && \
+	go build ./cmd/smsclient
 
 test: ## Run all tests
-	go test -v -race -timeout 30s ./...
+	go test -race -timeout 30s ./...
 
 run: ## Run version
 	go run ./cmd/smscenter
